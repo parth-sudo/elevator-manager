@@ -2,16 +2,16 @@ from django.db import models
 from django.db.models import F
 from django.db.models.functions import Abs
 # Create your models here.
-status_choices = [('available', 'available'), ('busy', 'busy')]
+status_choices = [('available', 'available'), ('busy', 'busy'), ('under_maintainance', 'under_maintainance')]
 direction_choices = [('up', 'up'), ('down', 'down')]
 
 class Elevator(models.Model):
     id = models.AutoField(primary_key=True)
     position = models.PositiveIntegerField(verbose_name="position", default = 0)
-    status = models.CharField(max_length=10, choices = status_choices, default='available')
+    status = models.CharField(max_length=20, choices = status_choices, default='available')
     is_open = models.BooleanField(default=False)
     direction = models.CharField(max_length=4, choices = direction_choices, default = 'up')
-    #next_destination = models.PositiveIntegerField(verbose_name="next", default=0)
+    next_destination = models.PositiveIntegerField(verbose_name="next", default=0)
 
     def __str__(self):
         return f"Elevator {self.id} - Position: {self.position}"
@@ -30,6 +30,9 @@ class Elevator(models.Model):
 
     def change_status(self, status):
         self.status = status
+
+    def assign_next_destination(self, floor):
+        self.next_destination = floor
 
         
 class ElevatorSystem(models.Model):
@@ -70,3 +73,7 @@ class ElevatorSystem(models.Model):
             status_report.append(obj)
 
         return status_report
+
+
+# class ElevatorRequest(models.Model):
+#     elevator = models.ForeignKey(Elevator, on_delete=models.CASCADE)

@@ -4,7 +4,7 @@ from .models import Elevator, ElevatorSystem
 class ElevatorSerializer(serializers.ModelSerializer):
     class Meta:
         model = Elevator
-        fields = ['id', 'position', 'status', 'is_open', 'direction']
+        fields = ['id', 'position', 'status', 'is_open', 'direction', 'next_destination']
 
 class ElevatorSystemSerializer(serializers.Serializer):
     elevators = serializers.SerializerMethodField()
