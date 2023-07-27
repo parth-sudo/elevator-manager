@@ -9,19 +9,26 @@ class Elevator(models.Model):
     id = models.AutoField(primary_key=True)
     position = models.PositiveIntegerField(verbose_name="position", default = 0)
     status = models.CharField(max_length=10, choices = status_choices, default='available')
-    open = models.BooleanField(default=False)
+    is_open = models.BooleanField(default=False)
     direction = models.CharField(max_length=4, choices = direction_choices, default = 'up')
 
     def __str__(self):
-        return self.id
+        return f"Elevator {self.id} - Position: {self.position}"
     
-    def move(self, direction):
-        if direction == 'up':
-            self.position += 1
-        elif direction == 'down':
-            self.position = self.position - 1 if self.position > 0 else self.position
-        
+    def move(self, direction, floor):
         self.direction = direction
+        self.position = floor
+    
+    def open(self):
+        if self.is_open:
+            self.is_open = False
+
+    def close(self):
+        if not self.is_open:
+            self.is_open = True
+
+    def change_status(self, status):
+        self.status = status
 
         
 class ElevatorSystem(models.Model):
