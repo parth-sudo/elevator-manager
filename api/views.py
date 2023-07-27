@@ -4,8 +4,10 @@ from .models import Elevator, ElevatorSystem
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from .serializers import ElevatorSystemSerializer, ElevatorSerializer
+import random
 
 # Create your views here.
+@api_view(['GET'])
 def initialize_elevators(request):
     num_elevators = int(request.GET.get('num_elevators', 2))  # Get the number of elevators from the request parameter (default to 1 if not provided)
 
@@ -18,17 +20,21 @@ def initialize_elevators(request):
 
 @api_view(['GET'])
 def get_elevator_system(request):
+    system_id = int(request.GET.get('id', -1))
     try:
-        elevator_system = ElevatorSystem.objects.get(pk = 1)
+        if system_id == -1:
+            elevator_system = ElevatorSystem.objects.first()
+        else:
+            elevator_system = ElevatorSystem.objects.get(id=system_id)
     except ElevatorSystem.DoesNotExist:
-        return Response({"System not found"}, status=404)
+        return Response({"Elevator System not found"}, status=404)
     
     serializer = ElevatorSystemSerializer(elevator_system)
     return Response(serializer.data)
     
 @api_view(['GET'])
 def assign_elevator(request):
-    floor = int(request.GET.get('floor'))
+    floor = int(request.GET.get('floor', 0))
 
     try:
         floor = int(floor)
@@ -43,12 +49,14 @@ def assign_elevator(request):
     if not assigned_elevator:
         return Response({"error": "No available elevators to handle the request"}, status=404)
 
-    assign_elevator.close()
-    assign_elevator.change_status('busy')
-    assign_elevator.move('up' if assigned_elevator.position < floor else 'down')
+    assigned_elevator.close()
+    assigned_elevator.change_status('busy')
+    assigned_elevator.move('up' if assigned_elevator.position < floor else 'down', floor)
     # this is because the elevator reflects the changes immediately (i.e no time gap in changing floors)
-    assign_elevator.change_status('available')
-    assign_elevator.open()
+    assigned_elevator.change_status('available')
+    assigned_elevator.open()
+    
+    assigned_elevator.save()
 
     serializer = ElevatorSerializer(assigned_elevator)
     
