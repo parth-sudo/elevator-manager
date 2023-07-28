@@ -6,6 +6,7 @@ from django.utils import timezone
 status_choices = [('available', 'available'), ('busy', 'busy'), ('not_working', 'not_working')]
 direction_choices = [('up', 'up'), ('down', 'down')]
 
+#model for Elevator
 class Elevator(models.Model):
     id = models.AutoField(primary_key=True)
     position = models.PositiveIntegerField(verbose_name="position", default = 0)
@@ -17,6 +18,7 @@ class Elevator(models.Model):
     def __str__(self):
         return f"Elevator {self.id} - Position: {self.position}"
     
+    #change position and direction of elevator. 
     def move(self, direction, floor):
         self.direction = direction
         self.position = floor
@@ -29,13 +31,15 @@ class Elevator(models.Model):
         if self.is_open:
             self.is_open = False
 
+    #change elevator status to either' not working', 'busy' or 'available'.
     def change_status(self, status):
         self.status = status
 
     def assign_next_destination(self, floor):
         self.next_destination = floor
 
-        
+
+#model for Elevator System.       
 class ElevatorSystem(models.Model):
     elevators = models.ManyToManyField(Elevator, related_name='elevators')
     
@@ -51,6 +55,7 @@ class ElevatorSystem(models.Model):
         elevator_system.elevators.set(elevators)
         return elevator_system
 
+    #method to assign the nearest available elevator to the requested floor.
     def assign_elevator_to_user(self, request_floor):
         available_elevators = self.elevators.filter(status='available')
         if not available_elevators:
@@ -66,6 +71,7 @@ class ElevatorSystem(models.Model):
 
         return closest_elevator
     
+    #get report for all elevators.
     def get_status(self):
         status_report = []
         elevators = self.elevators.all()
@@ -76,7 +82,7 @@ class ElevatorSystem(models.Model):
         return status_report
 
 
-#a model for storing user requests to the elevator.
+#model for storing user requests to the elevator.
 class ElevatorRequest(models.Model):
     floor_number = models.PositiveIntegerField(verbose_name="Floor Number")
     timestamp = models.DateTimeField(default=timezone.now)

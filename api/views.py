@@ -9,20 +9,21 @@ from .utils import get_elevator_instance
 from django.utils import timezone
 
 
+#viewset for elevator system. It has several action methods serving as api endpoints.
 class ElevatorSystemViewSet(viewsets.ViewSet):
 
+    #initializes an elevator system with N elevators in it.
     @action(detail=False, methods=['get'])
     def initialize_elevators(self, request):
         num_elevators = int(request.GET.get('num_elevators', 2))
-
         if num_elevators <= 0:
             return Response({'error': 'Invalid number of elevators. Must be greater than 0.'}, status=400)
 
         elevator_system = ElevatorSystem.create_elevators(num_elevators) #class method
         serializer = ElevatorSystemSerializer(elevator_system)
         return Response({'message': f'{num_elevators} elevators initialized successfully.', 'data': serializer.data})
-        
 
+    #fetches details of all elevators.    
     @action(detail=False, methods=['get'])
     def get_elevator_system(self, request):
         try:
@@ -34,7 +35,7 @@ class ElevatorSystemViewSet(viewsets.ViewSet):
         serializer = ElevatorSystemSerializer(elevator_system)
         return Response(serializer.data)
     
-    
+    #assign elevator the floor in the most optimal way.
     @action(detail=False, methods=['get'])
     def assign_elevator(self, request):
         floor = int(request.GET.get('floor', -1))
@@ -64,9 +65,17 @@ class ElevatorSystemViewSet(viewsets.ViewSet):
         serializer = ElevatorSerializer(assigned_elevator)
         return Response({'message' : f"Elevator with id {assigned_elevator.id} assigned to floor number {floor}", 'data' : serializer.data})
 
+    #get all the user elevator requests.
     @action(detail=False, methods=['get'])
     def get_elevator_requests(self, request):
-        user_requests = ElevatorRequest.objects.all()
+        id = int(request.GET.get('id', -1))
+        if id == -1:
+            user_requests = ElevatorRequest.objects.all()
+        else:
+            user_requests = ElevatorRequest.objects.filter(elevator=id)
+            if not user_requests:
+                return Response({'message' : 'Invalid request'}, status = 400)
+        
         serializer_data = []
         for user_request in user_requests:
             serializer = ElevatorRequestSerializer(user_request)
@@ -74,6 +83,8 @@ class ElevatorSystemViewSet(viewsets.ViewSet):
 
         return Response(serializer_data)
 
+
+#viewset for elevator. It has several action methods serving as api endpoints.
 class ElevatorViewSet(viewsets.ViewSet):
 
     @action(detail=False, methods=['get'])
@@ -82,7 +93,7 @@ class ElevatorViewSet(viewsets.ViewSet):
         serializer = ElevatorSerializer(elevator)
         return Response(serializer.data)
     
-
+    #move assigned elevators to their next destination.
     @action(detail=False, methods=['get'])
     def move_elevators(self, request):
         try:
@@ -91,13 +102,12 @@ class ElevatorViewSet(viewsets.ViewSet):
         except ElevatorSystem.DoesNotExist:
             return Response({"Elevator System not found"}, status=404)
         
-        elevators = elevator_system.elevators.all()  
-        print("line 81", elevators)
+        elevators = elevator_system.elevators.exclude(next_destination=-1)
+        if len(elevators) == 0:
+            return Response("No Elevator assigned to a floor.")  
         serializer_data = []
 
         for elevator in elevators:
-            if elevator.next_destination == -1:
-                continue  # Skip the elevator if it doesn't have a next destination
 
             # Simulating elevator actions.
             floor = elevator.next_destination
@@ -115,7 +125,7 @@ class ElevatorViewSet(viewsets.ViewSet):
 
         return Response(serializer_data)
 
-
+    #get direction (up or down)
     @action(detail=False, methods=['get'])
     def get_elevator_direction(self, request):
         elevator = get_elevator_instance(request)
@@ -148,10 +158,10 @@ class ElevatorViewSet(viewsets.ViewSet):
         serializer = ElevatorSerializer(elevator)
         return Response(serializer.data)
     
-
+    #open or close the door.
     @action(detail=False, methods=['get'])
     def handle_door(self, request):
-        elevator = get_elevator_instance(request)
+        elevator = get_elevator_instance(request) 
         query = str(request.GET.get('query', 'open'))
         if query != 'open' and query != 'close':
             return Response({'Invalid Request'}, status = 400)
@@ -163,9 +173,7 @@ class ElevatorViewSet(viewsets.ViewSet):
         elevator.save()
 
         bool_dict = {'close' : 'Closed', 'open' : 'Opened'}
+        serializer = ElevatorSerializer(elevator)
         message = f"Elevator with id {elevator.id} has been {bool_dict[query]}"
-        return Response(message)
+        return Response({'message' : message, 'data' : serializer.data})
 
-
-def home(request):
-    return HttpResponse("Home")
