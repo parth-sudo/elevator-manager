@@ -6,11 +6,8 @@ Elevator Manager
 ## Tech Stack – Python, Django, sqlite3
  
 
-**Elevator Manager**
+**Elevator System**
 
-**A backend project built to simulate an elevator system.**
-
-**Tech Stack – Python, Django, sqlite3**
 
 **Table of Contents –**
 
@@ -233,6 +230,9 @@ different API endpoints.
 
 
 
+
+
+https://github.com/parth-sudo/elevator-manager/assets/59291824/13cba414-c7ce-49f5-86ec-a186457bcd27
 
 
 
