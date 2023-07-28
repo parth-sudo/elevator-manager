@@ -219,7 +219,7 @@ different API endpoints.
     serialized data for the updated elevator. params: id, query
     
 
-**Utils**
+## **Utils**
 
 -   get\_elevator\_instance(request): This utility function takes a
     request as input and retrieves an Elevator instance based on the
