@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Elevator, ElevatorSystem
+from .models import Elevator, ElevatorSystem, ElevatorRequest
 
 class ElevatorSerializer(serializers.ModelSerializer):
     class Meta:
@@ -13,3 +13,4 @@ class ElevatorSystemSerializer(serializers.Serializer):
         elevators = obj.elevators.all()
         elevator_serializer = ElevatorSerializer(elevators, many=True)
         return elevator_serializer.data
+    

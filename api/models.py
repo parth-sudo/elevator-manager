@@ -1,8 +1,9 @@
 from django.db import models
 from django.db.models import F
 from django.db.models.functions import Abs
-# Create your models here.
-status_choices = [('available', 'available'), ('busy', 'busy'), ('under_maintainance', 'under_maintainance')]
+from django.utils import timezone
+
+status_choices = [('available', 'available'), ('busy', 'busy'), ('not_working', 'not_working')]
 direction_choices = [('up', 'up'), ('down', 'down')]
 
 class Elevator(models.Model):
@@ -11,7 +12,7 @@ class Elevator(models.Model):
     status = models.CharField(max_length=20, choices = status_choices, default='available')
     is_open = models.BooleanField(default=False)
     direction = models.CharField(max_length=4, choices = direction_choices, default = 'up')
-    next_destination = models.PositiveIntegerField(verbose_name="next", default=0)
+    next_destination = models.IntegerField(verbose_name="next", default=-1)
 
     def __str__(self):
         return f"Elevator {self.id} - Position: {self.position}"
@@ -75,5 +76,11 @@ class ElevatorSystem(models.Model):
         return status_report
 
 
-# class ElevatorRequest(models.Model):
-#     elevator = models.ForeignKey(Elevator, on_delete=models.CASCADE)
+#a model for storing user requests to the elevator.
+class ElevatorRequest(models.Model):
+    floor_number = models.PositiveIntegerField(verbose_name="Floor Number")
+    timestamp = models.DateTimeField(default=timezone.now)
+    elevator = models.ForeignKey(Elevator, on_delete=models.CASCADE, related_name='requests', null=True, blank=True)
+
+    def __str__(self):
+        return f"Request for Elevator: {self.elevator} - Floor Number: {self.floor_number}"
