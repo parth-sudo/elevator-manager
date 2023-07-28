@@ -14,3 +14,8 @@ class ElevatorSystemSerializer(serializers.Serializer):
         elevator_serializer = ElevatorSerializer(elevators, many=True)
         return elevator_serializer.data
     
+class ElevatorRequestSerializer(serializers.ModelSerializer):
+    timestamp = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S")
+    class Meta:
+        model = ElevatorRequest
+        fields = ['id', 'floor_number', 'timestamp', 'elevator'] 

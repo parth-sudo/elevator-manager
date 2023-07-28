@@ -1,9 +1,9 @@
 from django.shortcuts import render, HttpResponse
 from django.http import JsonResponse
-from .models import Elevator, ElevatorSystem
+from .models import Elevator, ElevatorSystem, ElevatorRequest
 from rest_framework.decorators import api_view, action
 from rest_framework.response import Response
-from .serializers import ElevatorSystemSerializer, ElevatorSerializer
+from .serializers import ElevatorSystemSerializer, ElevatorSerializer, ElevatorRequestSerializer
 from rest_framework import viewsets
 from .utils import get_elevator_instance
 from django.utils import timezone
@@ -58,11 +58,21 @@ class ElevatorSystemViewSet(viewsets.ViewSet):
 
         assigned_elevator.assign_next_destination(floor)
         assigned_elevator.save()
-
+        # creating user requests made for a specific elevator
+        elevator_request = ElevatorRequest.objects.create(floor_number=floor, elevator=assigned_elevator)
+        elevator_request.save()      
         serializer = ElevatorSerializer(assigned_elevator)
         return Response({'message' : f"Elevator with id {assigned_elevator.id} assigned to floor number {floor}", 'data' : serializer.data})
 
+    @action(detail=False, methods=['get'])
+    def get_elevator_requests(self, request):
+        user_requests = ElevatorRequest.objects.all()
+        serializer_data = []
+        for user_request in user_requests:
+            serializer = ElevatorRequestSerializer(user_request)
+            serializer_data.append(serializer.data)
 
+        return Response(serializer_data)
 
 class ElevatorViewSet(viewsets.ViewSet):
 
